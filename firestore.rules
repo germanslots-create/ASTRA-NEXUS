@@ -2,48 +2,39 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- GLOBAL HELPERS ---
+    // Helper
     function isSignedIn() {
       return request.auth != null;
     }
+
+    // --- COLLECTIONS ---
+    match /customers/{allPaths=**} {
+      allow read, write: if isSignedIn();
+    }
     
-    function isValidId(id) {
-      return id is string && id.size() <= 128;
+    match /orders/{allPaths=**} {
+      allow read, write: if isSignedIn();
+    }
+    
+    match /subscriptions/{allPaths=**} {
+      allow read, write: if isSignedIn();
+    }
+    
+    match /products/{allPaths=**} {
+      allow read, write: if isSignedIn();
+    }
+    
+    match /users/{allPaths=**} {
+      allow read, write: if isSignedIn();
+    }
+    
+    match /activities/{allPaths=**} {
+      allow read, write: if isSignedIn();
     }
 
     // Default deny
     match /{document=**} {
       allow read, write: if false;
-    }
-
-    // --- CUSTOMERS ---
-    match /customers/{customerId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- ORDERS ---
-    match /orders/{orderId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- SUBSCRIPTIONS ---
-    match /subscriptions/{subId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- PRODUCTS ---
-    match /products/{prodId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- USERS (Staff) ---
-    match /users/{userId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- ACTIVITIES ---
-    match /activities/{actId} {
-      allow read, write: if isSignedIn();
     }
   }
 }
