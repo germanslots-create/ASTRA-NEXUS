@@ -67,11 +67,14 @@ export const dbService = {
       callback([]);
       return () => {};
     }
+    console.log(`📡 Subscribing to collection: ${col}`);
     const q = query(collection(db, col));
     return onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+      console.log(`✅ Received ${data.length} items from ${col}`);
       callback(data);
     }, (error) => {
+      console.error(`❌ Error in subscription to ${col}:`, error);
       handleFirestoreError(error, OperationType.LIST, col);
     });
   },
