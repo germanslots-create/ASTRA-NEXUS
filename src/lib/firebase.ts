@@ -45,14 +45,16 @@ const firebaseConfig = {
   firestoreDatabaseId: (envPid ? cleanId(cleanVar(import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID)) : null) || cleanId(localConfig.firestoreDatabaseId) || cleanId(cleanVar(import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID)),
 };
 
+// CRITICAL: Ensure we use the correct database ID for Rule targeting
 const pid = firebaseConfig.projectId;
 const dbId = firebaseConfig.firestoreDatabaseId;
 
 console.log("🔥 Firebase Configuration Source 🔥", {
   isNetlifyEnv: !!envPid,
-  isLocalFile: !!localPid,
+  isLocalFile: !!localConfig.projectId,
   finalProjectId: pid,
-  finalDatabaseId: dbId || "(default)"
+  finalDatabaseId: dbId || "(default)",
+  allKeysPassed: !!(firebaseConfig.apiKey && firebaseConfig.appId)
 });
 
 if (envPid && localPid && envPid !== localPid) {

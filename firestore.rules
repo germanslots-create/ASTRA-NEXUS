@@ -1,40 +1,9 @@
 rules_version = '2';
+// Rules Version: 2026-05-13 14:55
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // --- COLLECTIONS ---
-    match /customers/{allPaths=**} {
-      allow read, write: if isSignedIn();
-    }
-    
-    match /orders/{allPaths=**} {
-      allow read, write: if isSignedIn();
-    }
-    
-    match /subscriptions/{allPaths=**} {
-      allow read, write: if isSignedIn();
-    }
-    
-    match /products/{allPaths=**} {
-      allow read, write: if isSignedIn();
-    }
-    
-    match /users/{allPaths=**} {
-      allow read, write: if isSignedIn();
-    }
-    
-    match /activities/{allPaths=**} {
-      allow read, write: if isSignedIn();
-    }
-
-    // Default deny
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if true;
     }
   }
 }
