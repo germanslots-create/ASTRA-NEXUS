@@ -43,7 +43,7 @@ export default function App() {
           position="top-right" 
           toastOptions={{
             style: {
-              background: '#141415',
+              background: '#141416',
               color: '#fff',
               border: '1px solid rgba(212, 175, 55, 0.2)',
             },
