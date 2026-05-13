@@ -25,7 +25,7 @@ try {
   const localConfigs = import.meta.glob('../../firebase-applet-config.json', { eager: true });
   localConfig = Object.values(localConfigs)[0] ? (Object.values(localConfigs)[0] as any).default : {};
 } catch (e) {
-  console.warn("Firebase: No local config file found.");
+  // Silent fallback
 }
 
 // --- CONFIG MERGING STRATEGY ---
@@ -45,53 +45,24 @@ const firebaseConfig = {
   firestoreDatabaseId: (envPid ? cleanId(cleanVar(import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID)) : null) || cleanId(localConfig.firestoreDatabaseId) || cleanId(cleanVar(import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID)),
 };
 
-// CRITICAL: Ensure we use the correct database ID for Rule targeting
 const pid = firebaseConfig.projectId;
 const dbId = firebaseConfig.firestoreDatabaseId;
 
-console.log("🔥 Firebase Configuration Source 🔥", {
-  isNetlifyEnv: !!envPid,
-  isLocalFile: !!localConfig.projectId,
-  finalProjectId: pid,
-  finalDatabaseId: dbId || "(default)",
-  allKeysPassed: !!(firebaseConfig.apiKey && firebaseConfig.appId)
-});
+console.log("🔥 Firebase Init:", { pid, dbId: dbId || "(default)" });
 
-if (envPid && localPid && envPid !== localPid) {
-  console.warn("⚠️ PROJECT ID CONFLICT: Environment has " + envPid + " but local file has " + localPid + ". USING ENVIRONMENT VARIABLE.");
-}
-
-if (!pid) {
-  console.error("Firebase: Missing Project ID. Ensure firebase-applet-config.json exists or VITE_FIREBASE_PROJECT_ID is set.");
-}
-
-export const app = initializeApp(firebaseConfig);
+// Singleton initialization
+import { getApps, getApp } from 'firebase/app';
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 
-// Use specified database ID
-// We already have dbId from firebaseConfig.firestoreDatabaseId above
-export const db = getFirestore(app, dbId || undefined);
+// Avoid "Unexpected state" by ensuring we only initialize Firestore once per session/HMR
+let _db: any;
+try {
+  _db = getFirestore(app, dbId || undefined);
+} catch (e) {
+  _db = initializeFirestore(app, {}, dbId || undefined);
+}
+export const db = _db;
 
 export const storage = getStorage(app);
-
-// Connectivity check
-(async () => {
-  if (!pid) return;
-  try {
-    await getDocFromServer(doc(db, '_health_check_', 'ping'));
-    console.log("✅ Firebase Connected.");
-  } catch (error: any) {
-    if (error.code === 'permission-denied') {
-      console.log("ℹ️ Firebase Connected (ACL Secured).");
-    } else {
-      console.error("❌ Firebase Connection Error:", error.code, error.message);
-      if (error.code === 'unavailable') {
-        console.warn("Possible Root Causes:");
-        console.warn("1. Wrong Database ID? Current:", dbId || "(default)");
-        console.warn("2. Database not yet provisioned in Firebase Console?");
-        console.warn("3. Project ID / App ID mismatch?");
-      }
-    }
-  }
-})();
 

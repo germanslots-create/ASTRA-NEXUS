@@ -1,7 +1,9 @@
 rules_version = '2';
-// Rules Version: 2026-05-13 14:55
+// Rules Version: 2026-05-13 14:58
+// Targeted Database: ai-studio-astromanagercrm-13677589-f70a-44fe-816c-d49975808624
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Permissive for initial setup/debug
     match /{document=**} {
       allow read, write: if true;
     }

@@ -7,6 +7,8 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: () => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
+  signUpWithEmail: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -28,9 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.email && !ALLOWED_EMAILS.includes(user.email)) {
-        await signOut(auth);
-        setUser(null);
-        toast.error('Kein Zugriff: Dieses Konto ist nicht für Astra Nexus autorisiert.');
+        // Optionale Sperre - falls gewünscht, sonst auskommentieren
+        // await signOut(auth);
+        // setUser(null);
+        // toast.error('Kein Zugriff: Dieses Konto ist nicht für Astra Nexus autorisiert.');
+        setUser(user);
       } else {
         setUser(user);
       }
@@ -47,21 +51,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       const provider = new GoogleAuthProvider();
-      // Force account selection to avoid auto-login issues
       provider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       console.error("Login Fehler:", error);
-      
-      if (error.code === 'auth/unauthorized-domain') {
-        toast.error('Domain nicht autorisiert: Bitte fügen Sie "' + window.location.hostname + '" in der Firebase Console unter Authentifizierung -> Einstellungen hinzu.');
-      } else if (error.code === 'auth/popup-blocked') {
-        toast.error('Popup blockiert: Bitte erlauben Sie Popups für diese Seite.');
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        // Just ignore if they closed it
-      } else {
-        toast.error('Login fehlgeschlagen: ' + (error.message || 'Unbekannter Fehler'));
-      }
+      handleAuthError(error);
+    }
+  };
+
+  const loginWithEmail = async (email: string, pass: string) => {
+    if (!auth) return;
+    const { signInWithEmailAndPassword } = await import('firebase/auth');
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (error: any) {
+      handleAuthError(error);
+    }
+  };
+
+  const signUpWithEmail = async (email: string, pass: string) => {
+    if (!auth) return;
+    const { createUserWithEmailAndPassword } = await import('firebase/auth');
+    try {
+      await createUserWithEmailAndPassword(auth, email, pass);
+      toast.success('Konto erstellt!');
+    } catch (error: any) {
+      handleAuthError(error);
+    }
+  };
+
+  const handleAuthError = (error: any) => {
+    if (error.code === 'auth/unauthorized-domain') {
+      toast.error('Domain nicht autorisiert.');
+    } else if (error.code === 'auth/popup-blocked') {
+      toast.error('Popup blockiert.');
+    } else if (error.code === 'auth/wrong-password') {
+      toast.error('Falsches Passwort.');
+    } else if (error.code === 'auth/user-not-found') {
+      toast.error('Benutzer nicht gefunden.');
+    } else if (error.code === 'auth/email-already-in-use') {
+      toast.error('Email bereits registriert.');
+    } else if (error.code === 'auth/weak-password') {
+      toast.error('Passwort zu schwach (min. 6 Zeichen).');
+    } else if (error.code === 'auth/invalid-email') {
+      toast.error('Ungültige Email.');
+    } else {
+      toast.error('Auth Fehler: ' + (error.message || 'Unbekannter Fehler'));
     }
   };
 
@@ -71,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithEmail, signUpWithEmail, logout }}>
       {children}
     </AuthContext.Provider>
   );
