@@ -1,0 +1,103 @@
+{
+  "entities": {
+    "Customer": {
+      "title": "Customer",
+      "description": "Details about a customer",
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "birthDate": { "type": "string" },
+        "birthTime": { "type": "string" },
+        "birthPlace": { "type": "string" },
+        "zodiacSign": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["firstName", "lastName", "email"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Astrological product order",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string" },
+        "customerSnapshot": { "$ref": "Customer" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "price": { "type": "number" },
+        "productType": { "type": "string", "enum": ["one-time", "subscription"] },
+        "subscriptionId": { "type": "string" },
+        "paymentStatus": { "type": "string", "enum": ["pending", "paid", "failed"] },
+        "status": { "type": "string", "enum": ["open", "in-progress", "waiting-for-pdf", "done", "delivered", "cancelled"] },
+        "deliveryDate": { "type": "string", "format": "date-time" },
+        "pdfUrl": { "type": "string" },
+        "notes": { "type": "string" },
+        "orderSource": { "type": "string", "enum": ["manual", "digistore24"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerId", "productId", "status"]
+    },
+    "Subscription": {
+      "title": "Subscription",
+      "description": "Active astrological subscription",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "paused", "cancelled"] },
+        "nextDeliveryDate": { "type": "string", "format": "date-time" },
+        "cycleMonths": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Catalog product",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "type": { "type": "string", "enum": ["one-time", "subscription"] },
+        "billingCycleMonths": { "type": "number" },
+        "description": { "type": "string" }
+      }
+    },
+    "User": {
+      "title": "User",
+      "description": "Application user (Admin/Employee)",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "employee"] },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" }
+      }
+    },
+    "Activity": {
+      "title": "Activity",
+      "description": "System activity log",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string" },
+        "description": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "customers": { "schema": "Customer", "description": "Global customers list" },
+    "orders": { "schema": "Order", "description": "Manual and imported orders" },
+    "subscriptions": { "schema": "Subscription", "description": "Active user subscriptions" },
+    "products": { "schema": "Product", "description": "Astrological product catalog" },
+    "users": { "schema": "User", "description": "Staff/Admin users" },
+    "activities": { "schema": "Activity", "description": "Audit log" }
+  }
+}
