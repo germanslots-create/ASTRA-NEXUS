@@ -54,7 +54,7 @@ export function Login() {
         <h1 className="text-2xl font-bold tracking-widest text-white mb-2 uppercase">
           ASTRA <span className="text-astro-gold">NEXUS</span>
         </h1>
-        <p className="text-xs text-astro-muted uppercase tracking-[0.2em] mb-8 font-medium">
+        <p className="text-[14px] text-astro-muted uppercase tracking-[0.2em] mb-8 font-medium">
           Celestial Order Management
         </p>
 
